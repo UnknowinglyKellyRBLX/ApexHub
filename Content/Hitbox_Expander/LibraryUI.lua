@@ -801,7 +801,7 @@ local function ChangeTheme(Theme)
 	end
 end
 
-local function getIcon(name: string, size: string?): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}
+local function getIcon(name: string, size: string?): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}?
 	if not Icons then
 		warn("Lucide Icons: Cannot use icons as icons library is not loaded")
 		return nil
@@ -811,19 +811,26 @@ local function getIcon(name: string, size: string?): {id: number, imageRectSize:
 	local selectedSize = size and Icons[size] and size or defaultSize
 	local sizedicons = Icons[selectedSize]
 	if not sizedicons then
-		warn(`Lucide Icons: Invalid size '{size}', defaulting to '{defaultSize}'`)
+		warn(`Lucide Icons: Invalid size '{size or "unknown"}', defaulting to '{defaultSize}'`)
+		selectedSize = defaultSize
 		sizedicons = Icons[defaultSize]
+	end
+	if not sizedicons then
+		warn("Lucide Icons: Default size not available")
+		return nil
 	end
 	local r = sizedicons[name]
 	if not r then
-		error(`Lucide Icons: Failed to find icon by the name of "{name}"`, 2)
+		warn(`Lucide Icons: Failed to find icon by the name of "{name}" in size "{selectedSize}"`)
+		return {id = 0, imageRectSize = Vector2.new(0,0), imageRectOffset = Vector2.new(0,0)}
 	end
 
 	local rirs = r[2]
 	local riro = r[3]
 
 	if type(r[1]) ~= "number" or type(rirs) ~= "table" or type(riro) ~= "table" then
-		error("Lucide Icons: Internal error: Invalid auto-generated asset entry")
+		warn("Lucide Icons: Internal warning: Invalid auto-generated asset entry")
+		return {id = 0, imageRectSize = Vector2.new(0,0), imageRectOffset = Vector2.new(0,0)}
 	end
 
 	local irs = Vector2.new(rirs[1], rirs[2])
